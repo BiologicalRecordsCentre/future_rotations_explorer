@@ -1,0 +1,17 @@
+#tools_pane {
+  /* Appearance */
+  background-color: #ffffffc7;
+  padding: 0 20px 20px 20px; 
+
+}
+
+#lang_select {
+  /* Appearance */
+  background-color: #fff0;
+}
+
+.divleft {
+  float : left;
+  padding: 0 20px 0 0; 
+}
+
