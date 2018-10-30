@@ -8,6 +8,7 @@
 library(leaflet)
 library(shiny)
 library(googleVis)
+library(plotly)
 
 shinyUI(bootstrapPage(
   
@@ -38,5 +39,8 @@ shinyUI(bootstrapPage(
                 htmlOutput('choose_crops'),
                 uiOutput('crop_boxes'),
                 #dataTableOutput('DT'),
-                htmlOutput('timeline'))
+                # htmlOutput('timeline'),
+                textOutput('selected_grid'),
+                plotlyOutput("barplot")
+                )
 ))

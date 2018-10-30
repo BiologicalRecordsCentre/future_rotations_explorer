@@ -8,6 +8,7 @@
 #lang_select {
   /* Appearance */
   background-color: #fff0;
+  border-color: transparent;
 }
 
 .divleft {

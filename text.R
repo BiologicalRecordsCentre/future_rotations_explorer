@@ -13,5 +13,17 @@ text <- list(title = list(en = 'Future Rotations Explorer',
              nyr = list(en = 'Number of years',
                         fr = "Nombre d'annee"),
              choose_crops = list(en = 'Choose crops',
-                                 fr = 'Choisissez la culture')
+                                 fr = 'Choisissez la culture'),
+             building_map = list(en = 'Building the map',
+                                 fr = 'Construire le carte'),
+             complete = list(en = 'Complete',
+                             fr = 'Achevée')
              )
+
+
+crops_names <- data.frame(label = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
+                              "Sunflower", "Wheat", "WinterRapeseed", "Rice", "other"),
+                    en = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
+                           "Sunflower", "Wheat", "WinterRapeseed", "Rice", "other"),
+                    fr = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
+                           "Sunflower", "Wheat", "WinterRapeseed", "Rice", "other"))
