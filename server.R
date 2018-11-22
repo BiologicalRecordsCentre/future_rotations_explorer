@@ -10,39 +10,100 @@ library(leaflet)
 library(googleVis)
 library(mapview)
 library(plotly)
+library(rgdal)
+library(sf)
+# library(promises)
+# library(future)
+# plan(multisession)
 
 # read in text
-source('text.R')
+source('text.R', encoding = "UTF-8")
+
+# read other functions
+for(i in list.files(path = 'scripts/', pattern = '.R$', full.names = TRUE)) source(i)
 
 # read in grid geometry
 load('data/grid_geometry.rdata')
+load('data/leaflet_start.rdata')
 
 shinyServer(function(input, output) {
   
-  # Create the map
+  # Load raster to display
+  ras <- reactive({
+    
+    if(is.character(input$rcp) & is.character(input$yr)){
+    
+      # Lookup rcp model
+      rcp_model <- rcp_models_lookup$label[rcp_models_lookup[lang()] == input$rcp]
+      
+      path <- paste0('data/rasters/',
+                     paste(rcp_model, input$crop, input$yr, sep = '_'),
+                     '.rdata')
+      load(path)
+      ras
+      
+    } else {
+
+      load('data/rasters/RCP85_Wheat_2050.rdata')
+      ras
+      
+    }
+    
+  })
+  
   output$map <- renderLeaflet({
+    L
+  })
+  
+  # Add raster on change
+  observeEvent({
+    input$rcp
+    input$crop
+    input$yr
+  }, {
 
     progress <- shiny::Progress$new()
     on.exit(progress$close())
-    isolate(progress$set(message = text$building_map[[lang()]], value = 0.1))
+    isolate(progress$set(message = 'Updating...', value = 0.1))
     
-    L <- leaflet(data = grid_geometry) %>%
-            addTiles() %>%
-            setView(lng = -1, lat = 53, zoom = 6) %>%
-            addFeatures(grid_geometry, weight = 1, color = '#000000',
-                        fillOpacity = 0.2,
-                        layerId = ~grid_code,
-                        smoothFactor = 1, 
-                        highlightOptions = highlightOptions(
-                          weight = 5,
-                          color = "#ff0000",
-                          fillOpacity = 0.7,
-                          bringToFront = TRUE))
+    pal <- colorNumeric('Spectral', raster::values(ras()),
+                        na.color = "transparent")
+    
+    leafletProxy("map") %>%
+          removeTiles('raster') %>%
+          addRasterImage(ras(), layerId = 'raster',
+                         colors = pal,
+                         opacity = 0.5,
+                         project = FALSE) %>%
+          removeControl(layerId = 'legend') %>%
+          addLegend_decreasing(position = 'topleft', layerId = 'legend',
+                               pal = pal, values = raster::values(ras()),
+                               labelFormat(transform = function(x) sort(x, decreasing = TRUE)),
+                               title = '% Change', decreasing = TRUE)
     
     isolate(progress$set(message = text$complete[[lang()]], value = 1))
+
+  })
+  
+  # Add polygon on select
+  observeEvent({
+    input$map_shape_click
+  }, {
     
-    L 
+    if(selected_grid() != -999){
     
+      coords <- st_coordinates(grid_geometry[grid_geometry$grid_code == selected_grid(),])
+      
+      leafletProxy("map") %>%
+        removeShape("-999") %>%
+        addPolylines(lng = coords[,1], lat = coords[,2],
+                     layerId = "-999",
+                     opacity = 1, fillColor = 'black')
+        # removeShape('selected_polygon') %>%
+        # addPolygons(lng = coords[,1], lat = coords[,2],
+        #             layerId = 'selected_polygon',
+        #             opacity = 1, fillColor = 'black')
+    }
   })
     
   # Observe clicks on the map
@@ -50,7 +111,8 @@ shinyServer(function(input, output) {
     
     p <- input$map_shape_click
     print(p)
-    p$id
+    as.numeric(p$id)
+    
     
   })
 
@@ -70,7 +132,7 @@ shinyServer(function(input, output) {
   # data for only the cell selected
   selected_data_cell <- reactive({
     
-    if(!is.null(selected_grid())){
+    if(!is.null(selected_grid()) & selected_grid() != -999){
       SEL <- selected_data_all()
       SEL[SEL$grid_code == selected_grid(),]
     } else {
@@ -81,21 +143,29 @@ shinyServer(function(input, output) {
   
   # Plot data for crops
   output$barplot <- renderPlotly({
-    
+  
     dat <- selected_data_cell()
-    crop_lang <- crop_seq()
-    crop_label <- crops_names$label[match(crop_lang, crops_names[,lang()])]
     
-    # Add year to label
-    lab <- paste(paste('Year', 1:length(crop_lang)), ' - ', crop_lang)
+    if(!is.null(dat)){  
     
-    bar_plot <- plot_ly(
-      x = lab,
-      y = dat$value[match(crop_label, dat$crop)],
-      name = "Change in yield",
-      type = "bar"
-    )
-    
+      crop_lang <- crop_seq()
+      crop_label <- crops_names$label[match(crop_lang, crops_names[,lang()])]
+      
+      # Add year to label
+      lab <- paste(paste('Year', 1:length(crop_lang)), ' - ', crop_lang)
+      
+      bar_plot <- plot_ly(
+        x = lab,
+        y = dat$value[match(crop_label, dat$crop)],
+        name = "Change in yield",
+        type = "bar"
+      )
+      
+    } else {
+      
+      NULL
+      
+    }
   })
   
   # Language selection
@@ -119,6 +189,33 @@ shinyServer(function(input, output) {
   })
   output$nyr <- renderText({input$nyr})
   
+  # Select RCP model
+  output$rcp_select <- renderUI({
+    selectInput('rcp',
+                label = text$rcp_label[[lang()]],
+                choices = text$rcp_models[[lang()]],
+                selected = text$rcp_models[[lang()]][2])
+  })
+  
+  # Select the year we are projecting to
+  output$year_select <- renderUI({
+    selectInput('yr',
+                label = text$forecast_year[[lang()]],
+                choices = c('2030', '2050'),
+                selected = '2050')
+  })
+  
+  # Tab titles
+  output$rotation_title <- renderText({
+    text$rotation_explorer[[lang()]]
+  })
+  output$map_title <- renderText({
+    text$map[[lang()]]
+  })
+  output$about_title <- renderText({
+    text$about[[lang()]]
+  })
+
   # Build and display the crop selection boxes
   output$crop_boxes <- renderUI({
     if(!is.null(input$nyr)){
@@ -128,7 +225,8 @@ shinyServer(function(input, output) {
                    selectInput(paste0('crop', i),
                                label = paste(text$year[[lang()]], i),
                                choices = crops_names[,lang()],
-                               width = 150)
+                               width = 150,
+                               selected = 'Wheat')
           )
         }),
         style = paste("height:", ifelse(input$nyr > 4, '175px', '90px'))

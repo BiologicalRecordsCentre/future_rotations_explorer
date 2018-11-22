@@ -9,6 +9,9 @@ library(leaflet)
 library(shiny)
 library(googleVis)
 library(plotly)
+library(raster)
+
+source('text.R', encoding = "UTF-8")
 
 shinyUI(bootstrapPage(
   
@@ -29,18 +32,34 @@ shinyUI(bootstrapPage(
                 actionLink("en", tags$img(src = 'flags/UK.png')),
                 actionLink("fr", tags$img(src = 'flags/France.png'))),
   
+  # Add logos
+  absolutePanel(id = "logos", class = "panel panel-default",
+                fixed = TRUE, draggable = FALSE, top = 'auto',
+                left = 5, right = 'auto', bottom =  -15,
+                img(src = 'logos/facce_small.png', align = 'left')),
+  
   # Add tools pane
   absolutePanel(id = "tools_pane", class = "panel panel-default",
-                fixed = TRUE, draggable = FALSE, top = 45,
-                left = "auto", right = 20, bottom =  30,
+                fixed = TRUE, draggable = TRUE, top = 45,
+                left = "auto", right = 20, bottom =  "auto",
                 width = '40%',
-                htmlOutput('title'),
-                uiOutput('nyr_select'),
-                htmlOutput('choose_crops'),
-                uiOutput('crop_boxes'),
-                #dataTableOutput('DT'),
-                # htmlOutput('timeline'),
-                textOutput('selected_grid'),
-                plotlyOutput("barplot")
-                )
+                uiOutput('rcp_select'),
+                uiOutput('year_select'),
+                tabsetPanel(
+                 tabPanel(textOutput('rotation_title'),
+                          uiOutput('nyr_select'),
+                          htmlOutput('choose_crops'),
+                          uiOutput('crop_boxes'),
+                          #dataTableOutput('DT'),
+                          # htmlOutput('timeline'),
+                          #textOutput('selected_grid'),
+                          plotlyOutput("barplot")),
+                 tabPanel(textOutput('map_title'),
+                          selectInput('crop', label = 'Crop',
+                                      choices = crops_names$en,
+                                      selected = 'Wheat')),
+                 tabPanel(textOutput('about_title'),
+                          img(src = 'logos/facce_small.png', align = 'left'),
+                          img(src = 'logos/PREAR logo_dark_small.png', align = 'left'))
+               ))
 ))
