@@ -16,6 +16,8 @@ library(sf)
 # library(future)
 # plan(multisession)
 
+options(encoding = "UTF-8")
+
 # read in text
 source('text.R', encoding = "UTF-8")
 

@@ -11,6 +11,8 @@ library(googleVis)
 library(plotly)
 library(raster)
 
+options(encoding = "UTF-8")
+
 source('text.R', encoding = "UTF-8")
 
 shinyUI(bootstrapPage(
