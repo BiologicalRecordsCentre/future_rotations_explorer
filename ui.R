@@ -50,14 +50,16 @@ shinyUI(bootstrapPage(
                   column(6, uiOutput('year_select'))),
                 tabsetPanel(
                  tabPanel(textOutput('rotation_title'),
-                          uiOutput('nyr_select'),
+                          fluidRow(
+                            column(6, uiOutput('nyr_select')),
+                            column(6, uiOutput('add_compare'))),
                           #htmlOutput('choose_crops'),
                           uiOutput('crop_boxes'),
                           #dataTableOutput('DT'),
                           # htmlOutput('timeline'),
                           #textOutput('selected_grid'),
-                          plotlyOutput("barplot"),
-                          uiOutput('add_compare')),
+                          plotlyOutput("barplot")
+                          ),
                  tabPanel(textOutput('map_title'),
                           selectInput('crop', label = 'Crop',
                                       choices = crops_names$en,
