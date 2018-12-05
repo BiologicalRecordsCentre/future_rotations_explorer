@@ -230,7 +230,8 @@ shinyServer(function(input, output, session) {
   output$nyr_select <- renderUI({
     selectInput('nyr',
                 label = text$nyr[[lang()]],
-                choices = 2:6, width = 120)   
+                choices = 2:6, width = 120,
+                selectize = FALSE)   
   })
   output$nyr <- renderText({input$nyr})
   
@@ -240,7 +241,8 @@ shinyServer(function(input, output, session) {
                 label = text$rcp_label[[lang()]],
                 choices = text$rcp_models[[lang()]],
                 selected = text$rcp_models[[lang()]][2],
-                width = "200px")
+                width = "200px",
+                selectize = FALSE)
   })
   
   # Select the year we are projecting to
@@ -249,7 +251,8 @@ shinyServer(function(input, output, session) {
                 label = text$forecast_year[[lang()]],
                 choices = c('2030', '2050'),
                 selected = '2050',
-                width = "200px")
+                width = "200px",
+                selectize = FALSE)
   })
   
   # Tab titles
@@ -276,7 +279,8 @@ shinyServer(function(input, output, session) {
                                label = paste(text$year[[lang()]], i),
                                choices = crops_names[,lang()],
                                width = 150,
-                               selected = 'Wheat')
+                               selected = 'Wheat',
+                               selectize = FALSE)
           )
         }),
         style = paste("height:", ifelse(input$nyr > 4, '175px', '90px'))

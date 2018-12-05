@@ -51,7 +51,7 @@ shinyUI(bootstrapPage(
                 tabsetPanel(
                  tabPanel(textOutput('rotation_title'),
                           uiOutput('nyr_select'),
-                          htmlOutput('choose_crops'),
+                          #htmlOutput('choose_crops'),
                           uiOutput('crop_boxes'),
                           #dataTableOutput('DT'),
                           # htmlOutput('timeline'),
@@ -61,7 +61,8 @@ shinyUI(bootstrapPage(
                  tabPanel(textOutput('map_title'),
                           selectInput('crop', label = 'Crop',
                                       choices = crops_names$en,
-                                      selected = 'Wheat')),
+                                      selected = 'Wheat',
+                                      selectize = FALSE)),
                  tabPanel(textOutput('about_title'),
                           img(src = 'logos/facce_small.png', align = 'left'),
                           img(src = 'logos/PREAR logo_dark_small.png', align = 'left')),
