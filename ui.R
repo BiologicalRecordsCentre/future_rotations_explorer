@@ -56,13 +56,17 @@ shinyUI(bootstrapPage(
                           #dataTableOutput('DT'),
                           # htmlOutput('timeline'),
                           #textOutput('selected_grid'),
-                          plotlyOutput("barplot")),
+                          plotlyOutput("barplot"),
+                          uiOutput('add_compare')),
                  tabPanel(textOutput('map_title'),
                           selectInput('crop', label = 'Crop',
                                       choices = crops_names$en,
                                       selected = 'Wheat')),
                  tabPanel(textOutput('about_title'),
                           img(src = 'logos/facce_small.png', align = 'left'),
-                          img(src = 'logos/PREAR logo_dark_small.png', align = 'left'))
+                          img(src = 'logos/PREAR logo_dark_small.png', align = 'left')),
+                 tabPanel(textOutput('compare_title'),
+                          DT::dataTableOutput('compareDT'),
+                          uiOutput('clear_data'))
                ))
 ))

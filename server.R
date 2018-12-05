@@ -12,6 +12,7 @@ library(mapview)
 library(plotly)
 library(rgdal)
 library(sf)
+library(DT)
 # library(promises)
 # library(future)
 # plan(multisession)
@@ -28,7 +29,7 @@ for(i in list.files(path = 'scripts/', pattern = '.R$', full.names = TRUE)) sour
 load('data/grid_geometry.rdata')
 load('data/leaflet_start.rdata')
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
   # Load raster to display
   ras <- reactive({
@@ -94,7 +95,7 @@ shinyServer(function(input, output) {
     
     if(selected_grid() != -999){
       
-      print(selected_grid)
+      print(selected_grid())
     
       coords <- st_coordinates(grid_geometry[grid_geometry$grid_code == selected_grid(),])
       
@@ -103,10 +104,6 @@ shinyServer(function(input, output) {
         addPolylines(lng = coords[,1], lat = coords[,2],
                      layerId = "-999",
                      opacity = 1, fillColor = 'black')
-        # removeShape('selected_polygon') %>%
-        # addPolygons(lng = coords[,1], lat = coords[,2],
-        #             layerId = 'selected_polygon',
-        #             opacity = 1, fillColor = 'black')
     } else {
       leafletProxy("map") %>%
         removeShape("-999")
@@ -118,8 +115,6 @@ shinyServer(function(input, output) {
     
     ic <- input$map_shape_click
     p <- data.frame(lat = ic$lat, lng = ic$lng)
-    # p <- data.frame(lat = 52.94864, lng = -1.757813)
-    print(p)
     sf::st_as_sf(p, coords = c('lng', 'lat'), crs = 4326)
     
   })
@@ -127,8 +122,7 @@ shinyServer(function(input, output) {
   selected_grid <- reactive({ 
     
     p <- click_point()
-    print(st_intersection(p, grid_geometry)$grid_code)
-    is <- st_intersection(p, grid_geometry)$grid_code
+    suppressWarnings({is <- st_intersection(p, grid_geometry)$grid_code})
     if(length(is) > 0){
       return(is)
     } else {
@@ -161,26 +155,56 @@ shinyServer(function(input, output) {
     }
     
   })
+
+  # Get crop labels for plotting
+  crop_label <- reactive({
+    crop_lang <- crop_seq()
+    crop_label <- crops_names$label[match(crop_lang, crops_names[,lang()])]
+  })
   
+  # average yield
+  av_change <- reactive({
+    dat <- selected_data_cell()
+    if(!is.null(dat)){  
+      av_change <- mean(dat$value[match(crop_label(), dat$crop)],
+                        na.rm = TRUE)
+    } else {
+      NULL
+    }
+  })
+
   # Plot data for crops
   output$barplot <- renderPlotly({
   
     dat <- selected_data_cell()
+    # str(dat)
     
     if(!is.null(dat)){  
-    
-      crop_lang <- crop_seq()
-      crop_label <- crops_names$label[match(crop_lang, crops_names[,lang()])]
-      
+
+      # crop_lang <- crop_seq()
+      # crop_label <- crops_names$label[match(crop_lang, crops_names[,lang()])]
+
       # Add year to label
-      lab <- paste(paste('Year', 1:length(crop_lang)), ' - ', crop_lang)
-      
+      lab <- paste(paste(text$year[[lang()]],
+                         1:length(crop_seq())),
+                   ' - ',
+                   crop_seq())
+      # av_change <- mean(dat$value[match(crop_label(), dat$crop)],
+      #                   na.rm = TRUE)
       bar_plot <- plot_ly(
         x = lab,
-        y = dat$value[match(crop_label, dat$crop)],
-        name = "Change in yield",
-        type = "bar"
-      )
+        y = dat$value[match(crop_label(), dat$crop)],
+        name = text$change_in_yield[[lang()]],
+        type = "bar") %>%
+        config(displayModeBar = F) %>%
+        add_segments(x = lab[1], xend = tail(lab, 1),
+                     y = av_change(), yend = av_change()) %>%
+        layout(showlegend = FALSE)
+      
+      # bar_plot <- ggplot(data = dat,
+      #                    aes(x = lab,
+      #                        y = dat$value[match(crop_label, dat$crop)])) +
+      #             geom_bar(stat="identity")
       
     } else {
       
@@ -190,7 +214,7 @@ shinyServer(function(input, output) {
   })
   
   # Language selection
-  lang <- reactiveVal(value = 'en')
+  lang <- reactiveVal(value = 'fr')
   observeEvent(input$en, {lang('en')})
   observeEvent(input$fr, {lang('fr')})
 
@@ -216,7 +240,7 @@ shinyServer(function(input, output) {
                 label = text$rcp_label[[lang()]],
                 choices = text$rcp_models[[lang()]],
                 selected = text$rcp_models[[lang()]][2],
-                width = "180px")
+                width = "200px")
   })
   
   # Select the year we are projecting to
@@ -225,7 +249,7 @@ shinyServer(function(input, output) {
                 label = text$forecast_year[[lang()]],
                 choices = c('2030', '2050'),
                 selected = '2050',
-                width = "180px")
+                width = "200px")
   })
   
   # Tab titles
@@ -238,7 +262,10 @@ shinyServer(function(input, output) {
   output$about_title <- renderText({
     text$about[[lang()]]
   })
-
+  output$compare_title <- renderText({
+    text$compare[[lang()]]
+  })
+  
   # Build and display the crop selection boxes
   output$crop_boxes <- renderUI({
     if(!is.null(input$nyr)){
@@ -286,18 +313,56 @@ shinyServer(function(input, output) {
     }
   })
 
-  # output$timeline <- renderGvis({
-  #   if(!is.null(TL())){
-  #     gvisTimeline(data = TL(),
-  #                  rowlabel = "Crop",
-  #                  start = "start",
-  #                  end = "end",
-  #                  options = list(timeline = "{groupByRowLabel:true,}",
-  #                                 width = '726px',
-  #                                 enableInteractivity = FALSE))
-  #   } else {
-  #     NULL
-  #   }
-  # })
+  # Create the table of comparisons
+  output$add_compare <- renderUI({
+    actionButton("compare", text$add_to_compare[[lang()]])
+  })
+  
+  output$clear_data <- renderUI({
+    actionButton("clear_data", text$clear_data[[lang()]])
+  })
+  
+  df_compare <- reactiveVal()
+  
+  observeEvent(input$compare, {
+    # Sys.sleep(0.2)
+    # create data to add
+    df_temp <- data.frame(location = selected_grid(),
+                          to_year = input$yr,
+                          model = input$rcp,
+                          Y1 = crop_label()[1],
+                          Y2 = crop_label()[2],
+                          Y3 = crop_label()[3],
+                          Y4 = crop_label()[4],
+                          Y5 = crop_label()[5],
+                          Y6 = crop_label()[6],
+                          yield_change = round(av_change(), digits = 2))
+    
+    names(df_temp) <- text$table_names[[lang()]]
+    
+    if(is.null(df_compare())){
+      
+      df_compare(unique(df_temp))
+    
+    } else {
+      
+      # add this and keep only unique values
+      df_temp <- unique(rbind(df_compare(), df_temp))
+      
+      df_compare(df_temp)
+      
+    }
+    showNotification('Data has been added to comparison',
+                     duration = 3, type = 'message')
+  })
+
+  observeEvent(input$clear_data,{
+    df_compare(NULL)
+  })
+  
+  output$compareDT <- DT::renderDataTable({
+    # remove columns with no data
+    Filter(function(x)!all(is.na(x)), df_compare())
+  })
   
 })
