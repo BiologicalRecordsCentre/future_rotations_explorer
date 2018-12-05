@@ -44,9 +44,10 @@ shinyUI(bootstrapPage(
   absolutePanel(id = "tools_pane", class = "panel panel-default",
                 fixed = TRUE, draggable = TRUE, top = 45,
                 left = "auto", right = 20, bottom =  "auto",
-                width = '40%',
-                uiOutput('rcp_select'),
-                uiOutput('year_select'),
+                width = "auto",
+                fluidRow(
+                  column(6, uiOutput('rcp_select')),
+                  column(6, uiOutput('year_select'))),
                 tabsetPanel(
                  tabPanel(textOutput('rotation_title'),
                           uiOutput('nyr_select'),

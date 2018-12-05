@@ -93,6 +93,8 @@ shinyServer(function(input, output) {
   }, {
     
     if(selected_grid() != -999){
+      
+      print(selected_grid)
     
       coords <- st_coordinates(grid_geometry[grid_geometry$grid_code == selected_grid(),])
       
@@ -105,19 +107,36 @@ shinyServer(function(input, output) {
         # addPolygons(lng = coords[,1], lat = coords[,2],
         #             layerId = 'selected_polygon',
         #             opacity = 1, fillColor = 'black')
+    } else {
+      leafletProxy("map") %>%
+        removeShape("-999")
     }
   })
     
   # Observe clicks on the map
-  selected_grid <- eventReactive(input$map_shape_click, { 
+  click_point <- eventReactive(input$map_shape_click, { 
     
-    p <- input$map_shape_click
+    ic <- input$map_shape_click
+    p <- data.frame(lat = ic$lat, lng = ic$lng)
+    # p <- data.frame(lat = 52.94864, lng = -1.757813)
     print(p)
-    as.numeric(p$id)
-    
+    sf::st_as_sf(p, coords = c('lng', 'lat'), crs = 4326)
     
   })
 
+  selected_grid <- reactive({ 
+    
+    p <- click_point()
+    print(st_intersection(p, grid_geometry)$grid_code)
+    is <- st_intersection(p, grid_geometry)$grid_code
+    if(length(is) > 0){
+      return(is)
+    } else {
+      return(-999)
+    }
+    
+  })
+  
   # Selected grid cell
   output$selected_grid <- renderPrint({
     print(selected_grid())
@@ -196,7 +215,8 @@ shinyServer(function(input, output) {
     selectInput('rcp',
                 label = text$rcp_label[[lang()]],
                 choices = text$rcp_models[[lang()]],
-                selected = text$rcp_models[[lang()]][2])
+                selected = text$rcp_models[[lang()]][2],
+                width = "180px")
   })
   
   # Select the year we are projecting to
@@ -204,7 +224,8 @@ shinyServer(function(input, output) {
     selectInput('yr',
                 label = text$forecast_year[[lang()]],
                 choices = c('2030', '2050'),
-                selected = '2050')
+                selected = '2050',
+                width = "180px")
   })
   
   # Tab titles
