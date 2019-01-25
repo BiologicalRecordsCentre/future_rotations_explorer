@@ -39,8 +39,17 @@ shinyServer(function(input, output, session) {
       # Lookup rcp model
       rcp_model <- rcp_models_lookup$label[rcp_models_lookup[lang()] == input$rcp]
       
+      # Lookup crop
+      if(is.null(input$crop)){
+        crop <- crops_names$label[8]
+      } else {
+        crop <- crops_names$label[grep(as.character(input$crop),
+                                       crops_names[,lang()])]
+      }
+      
+      print(crop)
       path <- paste0('data/rasters/',
-                     paste(rcp_model, input$crop, input$yr, sep = '_'),
+                     paste(rcp_model, crop, input$yr, sep = '_'),
                      '.rdata')
       load(path)
       ras
@@ -303,7 +312,7 @@ shinyServer(function(input, output, session) {
                                label = paste(text$year[[lang()]], i),
                                choices = crops_names[,lang()],
                                width = 150,
-                               selected = 'Wheat',
+                               selected = crops_names[,lang()][8],
                                selectize = FALSE)
           )
         }),
@@ -312,6 +321,15 @@ shinyServer(function(input, output, session) {
     } else {
       NULL
     }
+  })
+  
+  # Build map crop selection box ----
+  output$map_crop_select <- renderUI({
+    selectInput('crop',
+                label = text$crop[[lang()]],
+                choices = crops_names[,lang()],
+                selected = crops_names[,lang()][8],
+                selectize = FALSE)
   })
   
   # Create timeline of crops ----
