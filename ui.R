@@ -50,6 +50,7 @@ shinyUI(bootstrapPage(
                   column(6, uiOutput('year_select'))),
                 tabsetPanel(
                  tabPanel(textOutput('rotation_title'),
+                          textOutput('rotation_desc'),
                           fluidRow(
                             column(6, uiOutput('nyr_select')),
                             column(6, uiOutput('add_compare'))),
@@ -61,11 +62,13 @@ shinyUI(bootstrapPage(
                           plotlyOutput("barplot")
                           ),
                  tabPanel(textOutput('map_title'),
+                          textOutput('map_desc'),
                           selectInput('crop', label = 'Crop',
                                       choices = crops_names$en,
                                       selected = 'Wheat',
                                       selectize = FALSE)),
                  tabPanel(textOutput('about_title'),
+                          htmlOutput('about_text'),
                           img(src = 'logos/facce_small.png', align = 'left'),
                           img(src = 'logos/PREAR logo_dark_small.png', align = 'left')),
                  tabPanel(textOutput('compare_title'),

@@ -1,7 +1,7 @@
 # Function to return text, makes translation easy
 
 text <- list(rotation_explorer = list(en = 'Rotations Explorer',
-                          fr = 'Explorateur de rotations'),
+                                      fr = 'Explorateur de rotations'),
              year = list(en = 'Year',
                          fr = 'Année'),
              nyr = list(en = 'Number of years',
@@ -15,7 +15,7 @@ text <- list(rotation_explorer = list(en = 'Rotations Explorer',
              rcp_label = list(en = 'Select climate model',
                               fr = 'Sélectionner le modèle climatique'),
              rcp_models = list(en = c('Medium increase in C02', 'Large increase in C02'),
-                               fr = c('Augmentation moyenne de CO2', 'Forte augmentation de CO2')),
+                               fr = c('RCP 4,5 - Augmentation moy de CO2', 'RCP 8,5 - Forte augmentation de CO2')),
              forecast_year = list(en = 'Select forecast year',
                                   fr = "Sélectionnez l'année de prévision"),
              map = list(en = 'Map',
@@ -37,18 +37,37 @@ text <- list(rotation_explorer = list(en = 'Rotations Explorer',
              table_names = list(en = c('Location', 'Year', 'Model', 'Yr1', 'Yr2', 'Yr3',
                                        'Yr4', 'Yr5', 'Yr6', 'Yield change'),
                                 fr = c('Emplacement', 'Année', 'Modèle', 'An1', 'An2', 'An3',
-                                       'An4', 'An5', 'An6', 'Changement de rendement'))
-             )
+                                       'An4', 'An5', 'An6', 'Changement de rendement')),
+             rotation_desc = list(en = "Select a location on the map to show change in yield",
+                                   fr = "Sélectionner une zone pour voir les variations de rendement"),
+             map_desc = list(en = c("Select a crop to show change in yield on the map"),
+                             fr = c("Sélectionner une culture pour voir les variations de rendement sur la carte")),
+             about_text = list(en = paste('<p>This tool was produced under the',
+                                          '<a href="https://projects.au.dk/faccesurplus/research-projects-1st-call/prear/" target="_blank">PREAR project</a>.',
+                                          'It was funded through the ',
+                                          '<a href="https://www.faccejpi.com/Research-Themes-and-Achievements/Sustainable-intensification-of-agriculture/ERA-NET-cofund-FACCE-SURPLUS" target="_blank">FACCE SURPLUS programme</a>',
+                                          'of the European Commission. The underlying data on crop',
+                                          'yields are from the',
+                                          '<a href="http://agri4cast.jrc.ec.europa.eu/" target="_blank">AGRI4CAST project</a> of',
+                                          'the Joint Research Centre.</p>'),
+                               fr = paste('<p>Cet outil a été produit dans le cadre du',
+                                          '<a href="https://projects.au.dk/faccesurplus/research-projects-1st-call/prear/" target="_blank">projet PREAR</a>,',
+                                          'financé par le programme',
+                                          '<a href="https://www.faccejpi.com/Research-Themes-and-Achievements/Sustainable-intensification-of-agriculture/ERA-NET-cofund-FACCE-SURPLUS" target="_blank">FACCE SURPLUS</a>',
+                                          'de la Commission Européenne. Les données relatives aux rendements des cultures sont issues du',
+                                          '<a href="http://agri4cast.jrc.ec.europa.eu/" target="_blank">projet AGRI4CAST</a>',
+                                          'du Centre Commun de Recherche.</p>'))
+)
 
 
 crops_names <- data.frame(label = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
                                     "Sunflower", "Wheat", "WinterRapeseed"),
-                    	  en = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
-                               "Sunflower", "Wheat", "WinterRapeseed"),
-                    	  fr = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
-                               "Sunflower", "Wheat", "WinterRapeseed"))
+                          en = c("FieldBeans", "Maize", "Potato", "Rye", "SpringBarley", "SugarBeet", 
+                                 "Sunflower", "Wheat", "WinterRapeseed"),
+                          fr = c("Féverole", "Maïs", "Pomme de terre", "Seigle", "Orge de printemps", "Betterave à sucre", 
+                                 "Tournesol", "Blé tendre d'hiver", "Colza d'hiver"))
 
 rcp_models_lookup <- data.frame(label = c('RCP45', 'RCP85'),
                                 en = c('Medium increase in C02', 'Large increase in C02'),
-                                fr = c('Augmentation moyenne de CO2', 'Forte augmentation de CO2'))
+                                fr = c('RCP 4,5 - Augmentation moy de CO2', 'RCP 8,5 - Forte augmentation de CO2'))
 

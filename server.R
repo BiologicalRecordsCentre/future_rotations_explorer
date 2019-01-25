@@ -31,7 +31,7 @@ load('data/leaflet_start.rdata')
 
 shinyServer(function(input, output, session) {
   
-  # Load raster to display
+  # Load raster to display ----
   ras <- reactive({
     
     if(is.character(input$rcp) & is.character(input$yr)){
@@ -58,7 +58,7 @@ shinyServer(function(input, output, session) {
     L
   })
   
-  # Add raster on change
+  # Add raster on change ----
   observeEvent({
     input$rcp
     input$crop
@@ -88,7 +88,7 @@ shinyServer(function(input, output, session) {
 
   })
   
-  # Add polygon on select
+  # Add polygon on select ----
   observeEvent({
     input$map_shape_click
   }, {
@@ -110,7 +110,7 @@ shinyServer(function(input, output, session) {
     }
   })
     
-  # Observe clicks on the map
+  # Observe clicks on the map ----
   click_point <- eventReactive(input$map_shape_click, { 
     
     ic <- input$map_shape_click
@@ -131,12 +131,12 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # Selected grid cell
+  # Selected grid cell ----
   output$selected_grid <- renderPrint({
     print(selected_grid())
   })
   
-  # read in the data needed
+  # read in the data needed ----
   selected_data_all <- reactive({
     
     # RCP model can be 'RCP45' or 'RCP85'
@@ -153,7 +153,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # data for only the cell selected
+  # data for only the cell selected ----
   selected_data_cell <- reactive({
     
     if(!is.null(selected_grid()) & selected_grid() != -999){
@@ -165,13 +165,13 @@ shinyServer(function(input, output, session) {
     
   })
 
-  # Get crop labels for plotting
+  # Get crop labels for plotting ----
   crop_label <- reactive({
     crop_lang <- crop_seq()
     crop_label <- crops_names$label[match(crop_lang, crops_names[,lang()])]
   })
   
-  # average yield
+  # average yield ----
   av_change <- reactive({
     dat <- selected_data_cell()
     if(!is.null(dat)){  
@@ -182,7 +182,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # Plot data for crops
+  # Plot data for crops ----
   output$barplot <- renderPlotly({
   
     dat <- selected_data_cell()
@@ -224,12 +224,12 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  # Language selection
+  # Language selection ----
   lang <- reactiveVal(value = 'fr')
   observeEvent(input$en, {lang('en')})
   observeEvent(input$fr, {lang('fr')})
 
-  # Render text elements
+  # Render text elements ----
   output$title <- renderUI({
     h1(text$title[[lang()]])
   })
@@ -237,7 +237,7 @@ shinyServer(function(input, output, session) {
     h3(text$choose_crops[[lang()]])
   })
   
-  # Select the number of years you want
+  # Select the number of years you want ----
   output$nyr_select <- renderUI({
     selectInput('nyr',
                 label = text$nyr[[lang()]],
@@ -246,7 +246,7 @@ shinyServer(function(input, output, session) {
   })
   output$nyr <- renderText({input$nyr})
   
-  # Select RCP model
+  # Select RCP model ----
   output$rcp_select <- renderUI({
     selectInput('rcp',
                 label = text$rcp_label[[lang()]],
@@ -256,7 +256,7 @@ shinyServer(function(input, output, session) {
                 selectize = FALSE)
   })
   
-  # Select the year we are projecting to
+  # Select the year we are projecting to ----
   output$year_select <- renderUI({
     selectInput('yr',
                 label = text$forecast_year[[lang()]],
@@ -266,7 +266,7 @@ shinyServer(function(input, output, session) {
                 selectize = FALSE)
   })
   
-  # Tab titles
+  # Tab titles ----
   output$rotation_title <- renderText({
     text$rotation_explorer[[lang()]]
   })
@@ -280,7 +280,20 @@ shinyServer(function(input, output, session) {
     text$compare[[lang()]]
   })
   
-  # Build and display the crop selection boxes
+  # Tab descriptions ----
+  output$rotation_desc <- renderText({
+    text$rotation_desc[[lang()]]
+  })
+  output$map_desc <- renderText({
+    text$map_desc[[lang()]]
+  })
+  
+  # About text ----
+  output$about_text <- renderUI({
+    HTML(text$about_text[[lang()]])
+  })
+  
+  # Build and display the crop selection boxes ----
   output$crop_boxes <- renderUI({
     if(!is.null(input$nyr)){
       tags$div(id = 'crop_boxes',
@@ -301,7 +314,7 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  # Create timeline of crops
+  # Create timeline of crops ----
   crop_seq <- reactive({
     if('crop1' %in% names(input)){
     all <- lapply(1:input$nyr,
@@ -328,7 +341,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # Create the table of comparisons
+  # Create the table of comparisons ----
   output$add_compare <- renderUI({
     actionButton("compare", text$add_to_compare[[lang()]])
   })
