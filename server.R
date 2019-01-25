@@ -139,7 +139,16 @@ shinyServer(function(input, output, session) {
   # read in the data needed
   selected_data_all <- reactive({
     
-    load('data/RCP45/ch2015.2050.rdata')
+    # RCP model can be 'RCP45' or 'RCP85'
+    rcp_model <- rcp_models_lookup$label[rcp_models_lookup[lang()] == input$rcp]
+    
+    # Year can be '2030' or '2050'
+    year <- input$yr
+    
+    data_path <- file.path('data', rcp_model, paste0('ch2015.', year, '.rdata'))
+    
+    # Load data and return it
+    load(data_path)
     selected_data
     
   })
@@ -199,7 +208,9 @@ shinyServer(function(input, output, session) {
         config(displayModeBar = F) %>%
         add_segments(x = lab[1], xend = tail(lab, 1),
                      y = av_change(), yend = av_change()) %>%
-        layout(showlegend = FALSE)
+        layout(showlegend = FALSE) %>%
+        layout(xaxis=list(fixedrange = TRUE)) %>% 
+        layout(yaxis=list(fixedrange = TRUE))
       
       # bar_plot <- ggplot(data = dat,
       #                    aes(x = lab,
@@ -272,7 +283,7 @@ shinyServer(function(input, output, session) {
   # Build and display the crop selection boxes
   output$crop_boxes <- renderUI({
     if(!is.null(input$nyr)){
-      tags$div(
+      tags$div(id = 'crop_boxes',
         lapply(1:input$nyr, function(i) {
           tags$div(class = "divleft",
                    selectInput(paste0('crop', i),
@@ -283,7 +294,7 @@ shinyServer(function(input, output, session) {
                                selectize = FALSE)
           )
         }),
-        style = paste("height:", ifelse(input$nyr > 4, '175px', '90px'))
+        style = paste("overflow: hidden")
       )
     } else {
       NULL
@@ -350,8 +361,14 @@ shinyServer(function(input, output, session) {
     
     } else {
       
+      df_compare <- df_compare()
+      
+      if(!identical(colnames(df_compare), colnames(df_temp))){
+        colnames(df_compare) <- colnames(df_temp)
+      }
+      
       # add this and keep only unique values
-      df_temp <- unique(rbind(df_compare(), df_temp))
+      df_temp <- unique(rbind(df_compare, df_temp))
       
       df_compare(df_temp)
       
